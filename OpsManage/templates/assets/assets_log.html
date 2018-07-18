@@ -34,11 +34,14 @@
 				                                    	<th class="text-center">操作用户</th>
 				                                        <th class="text-center">操作内容</th>
 				                                        <th class="text-center">操作时间</th>
+				                                        {% if perms.OpsManage.delete_log_assets %}
+				                                        	<th class="text-center">操作</th>
+				                                        {% endif %}
 				                                    </tr>
 				                                </thead>
 				                                <tbody>
 				                                	{% for ds in assetsList %}
-				                                		<tr class="odd gradeX">
+				                                		<tr class="odd gradeX" id="assetsLogs-{{ds.id}}">
 				                                			<td class="text-center">
 				                                				{% if ds.assets_type == 'server' or ds.assets_type == 'net' %}
 				                                					 <a href="/assets_view/{{ds.assets_id}}">{{ds.assets_id}}</a>
@@ -48,11 +51,39 @@
 				                                			</td>
 				                                			<td class="text-center">{{ds.assets_user}} </td>
 				                                			<td class="text-center">{{ds.assets_content}} </td>
-				                                			<td class="text-center">{{ds.create_time|date:"Y/m/d H:i  "}} </td>
+				                                			<td class="text-center">{{ds.create_time|date:"Y/m/d H:i  "}}</td>
+				                                			{% if perms.OpsManage.delete_log_assets %}
+					                                			<td class="text-center">
+					                                				<a href="javascript:" onclick="deleteAssetsLogs(this,{{ds.id}})">
+						                                				<button class="btn btn-danger btn-xs">					                                					
+																			<i class="glyphicon glyphicon-trash  bigger-110 icon-only"></i>
+																		</button>
+																	</a>
+																</td>
+															{% endif %}
 				                                		</tr>
 				                                	{% endfor %}
 				                                </tbody>
-				                            </table>					                   		
+				                            </table>
+
+										{% if assetsList %}
+											<ul class="pagination">
+											        {% if assetsList.has_previous %}
+											            <li><a href="/assets_log/{{ assetsList.previous_page_number }}/">&laquo;</a></li>
+											        {% endif %}
+											        {% for page in assetsList.paginator.page_range %}
+											        	{% if assetsList.number == page %}
+											        		<li class="disabled"><a href="/assets_log/{{page}}/">{{page}}</a></li>
+											        	{% else %}
+											        		<li><a href="/assets_log/{{page}}/">{{page}}</a></li>
+											        	{% endif %}
+											        {% endfor %}
+											        {% if assetsList.has_next %}
+											            <li><a href="/assets_log/{{ assetsList.next_page_number }}/">&raquo;</a></li>
+											        {% endif %}
+											</ul>
+                     		            {% endif %}					                            
+				                            					                   		
 				                   		</div>
 
 				                   </div>
@@ -75,11 +106,22 @@
 
 		$(document).ready(function() {
 		    $('#assetsTableList').DataTable({
-		        responsive: true
+		        responsive: true,
+		        "order": [[4, 'asc']]
 		    });
 		});
 
-				
+		function deleteAssetsLogs(obj,id) {
+			$.ajax({
+				dataType: "JSON",
+				url:'/api/logs/assets/'+ id +'/', //请求地址
+				type:"DELETE",  //提交类似
+				success:function(response){
+					var str= 'assetsLogs-' + id
+					document.getElementById(str).innerHTML = ''; 
+				}					
+			})					
+		}					
   
 </script>
 

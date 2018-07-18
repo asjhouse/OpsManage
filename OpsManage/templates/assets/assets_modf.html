@@ -1,4 +1,7 @@
 {% extends 'index.html' %}
+{% block ace-content %}
+<script type="text/javascript" src="/static/dist/js/bootstrap-notify.js"></script>
+{% endblock %}
 {% block page-content %}
 <div id="page-wrapper">
             <div class="row">
@@ -27,7 +30,9 @@
 													{% if asset_main.assets_type == "server" %}
 														 <input type="text" class="form-control"  value="服务器" class="input-xlarge"  disabled/>
 													{% elif asset_main.assets_type == "switch" %}
-														 <input type="text" class="form-control"  value="交换机" class="input-xlarge"  disabled/>							         				
+														 <input type="text" class="form-control"  value="交换机" class="input-xlarge"  disabled/>		
+													{% elif asset_main.assets_type == "vmser" %}
+														 <input type="text" class="form-control"  value="虚拟机" class="input-xlarge"  disabled/>															 					         				
 													{% elif asset_main.assets_type == "route" %}
 														 <input type="text" class="form-control"  value="路由器" class="input-xlarge"  disabled/>
 													{% elif asset_main.assets_type == "printer" %}
@@ -49,14 +54,14 @@
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">资产编号</label>
 												 <div class="col-sm-6">
-												 	<input type="text" class="form-control"  placeholder="编号" name="asset_name" value="{{ asset_main.name }}" class="input-xlarge"  disabled/>
+												 	<input type="text" class="form-control"  placeholder="编号" name="asset_name" value="{{ asset_main.name|default:"" }}" class="input-xlarge"  disabled/>
 												 </div>
 											</div>
-											
+											{% if asset_main.assets_type != "vmser" %}
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">设备序列号</label>
 												 <div class="col-sm-6">
-												 	<input type="text" class="form-control"  placeholder="序列号" name="asset_sn" value="{{ asset_main.sn }}" class="input-xlarge"  disabled/>
+												 	<input type="text" class="form-control"  placeholder="序列号" name="asset_sn" value="{{ asset_main.sn|default:"" }}" class="input-xlarge"  disabled/>
 												 </div>
 											</div>	
 					
@@ -77,38 +82,46 @@
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">购买人</label>
 												 <div class="col-sm-6">
-												 	<input type="text" class="form-control" name="asset_buy_user" placeholder="购买人" value="{{ asset_main.buy_user }}" class="input-xlarge"  required/>
+												   <select class="form-control" name="asset_buy_user"  required>
+														{% for user in userList %}
+															{% if asset_main.buy_user == user.id %}
+																<option selected="selected" value="{{user.id}}" name="asset_buy_user">{{user.username}}</option>
+															{% else %}
+																<option value="{{user.id}}" name="asset_buy_user">{{user.username}}</option>	
+															{% endif %}
+														{% endfor %}			   		
+													</select>	
 												 </div>
 											</div>	
 											
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">管理IP</label>
 												 <div class="col-sm-6">
-												 	<input type="text" class="form-control" name="asset_management_ip" placeholder="管理/预设IP" value="{{ asset_main.management_ip }}" pattern="^(\d+\.\d+\.\d+\.\d+|[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(/.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+/.?))$"  class="input-xlarge" />
+												 	<input type="text" class="form-control" name="asset_management_ip" placeholder="管理/预设IP" value="{{ asset_main.management_ip|default:"" }}" pattern="^(\d+\.\d+\.\d+\.\d+|[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(/.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+/.?))$"  class="input-xlarge" />
 												 </div>
 											</div>															
 												
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">生产制造商</label>
 												 <div class="col-sm-6">
-												 	<input type="text" class="form-control" name="asset_manufacturer" placeholder="制造商" value="{{ asset_main.manufacturer }}"  class="input-xlarge"  required/>
+												 	<input type="text" class="form-control" name="asset_manufacturer" placeholder="制造商" value="{{ asset_main.manufacturer|default:"" }}"  class="input-xlarge"  required/>
 												 </div>
 											</div>
 											
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">设备型号</label>
 												 <div class="col-sm-6">
-												 	<input type="text" class="form-control" name="asset_model" placeholder="设备型号" value="{{ asset_main.model }}" class="input-xlarge"  required/>
+												 	<input type="text" class="form-control" name="asset_model" placeholder="设备型号" value="{{ asset_main.model|default:"" }}" class="input-xlarge"  required/>
 												 </div>
 											</div>						
 											
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">供货商</label>
 												 <div class="col-sm-6">
-												 	<input type="text" class="form-control" name="asset_provider" placeholder="供货商" value="{{ asset_main.provider }}" class="input-xlarge"  required/>
+												 	<input type="text" class="form-control" name="asset_provider" placeholder="供货商" value="{{ asset_main.provider|default:"" }}" class="input-xlarge"  required/>
 												 </div>
 											</div>													
-													
+											{% endif %}		
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">设备状态</label>
 												 <div class="col-sm-6">
@@ -154,10 +167,10 @@
 <!-- 												 	<input type="text" class="form-control" name="asset_put_zone" placeholder="放置区域" value="{{ asset_main.put_zone }}" class="input-xlarge" /> -->
 													<select class="form-control" name="asset_put_zone"  >
 														{% for z in assets_data.zone %}
-															{% if z.id == asset_main.zone %}
-																<option value="{{asset_main.zone}}" name="asset_put_zone" selected="selected" >{{z.zone_name}}</option>
+															{% if z.id == asset_main.put_zone %}
+																<option value="{{z.id}}" name="asset_put_zone" selected="selected" >{{z.zone_name|default:""}}</option>
 															{% else %}
-																<option value="{{z.id}}" name="asset_put_zone">{{z.zone_name}}</option>
+																<option value="{{z.id}}" name="asset_put_zone">{{z.zone_name|default:""}}</option>
 															{% endif %}										
 														{% endfor %}						   																						
 													</select>												 
@@ -170,24 +183,39 @@
 												   <select class="form-control" name="asset_group"  >
 														{% for g in assets_data.group %}
 															{% if g.id == asset_main.group %}
-																<option value="{{g.id}}" name="asset_group" selected="selected" >{{g.name}}</option>
+																<option value="{{g.id}}" name="asset_group" selected="selected" >{{g.name|default:""}}</option>
 															{% else %}
-																<option value="{{g.id}}" name="asset_group">{{g.name}}</option>
+																<option value="{{g.id}}" name="asset_group">{{g.name|default:""}}</option>
 															{% endif %}										
 														{% endfor %}						   																						
 													</select>
 												 </div>
-											</div>																	
+											</div>	
+											
+											<div class="form-group">
+												 <label class="col-sm-2 control-label">所属产品线</label>
+												 <div class="col-sm-6">
+												   <select class="form-control" name="asset_project" id="asset_project"  onchange="javascript:oBtProjectSelect();">
+														{% for s in assets_data.project %}
+															{% if s.id == asset_main.project %}
+																<option value="{{s.id}}" name="asset_project" selected="selected" >{{s.project_name|default:""}}</option>
+															{% else %}
+																<option value="{{s.id}}" name="asset_project">{{s.project_name|default:""}}</option>
+															{% endif %}										
+														{% endfor %}							   						   					
+													</select>
+												 </div>
+											</div>																											
 														
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">业务类型</label>
 												 <div class="col-sm-6">
-												   <select class="form-control" name="asset_business"  >
+												   <select class="form-control" name="asset_business"  id="asset_business">
 														{% for s in assets_data.service %}
-															{% if s.id == asset_main.business %}
-																<option value="{{asset_main.business}}" name="asset_business" selected="selected" >{{s.service_name}}</option>
+															{% if s.id == asset_main.business and s.project.id == asset_main.project %}
+																<option value="{{s.id}}" name="asset_business" selected="selected" >{{s.service_name|default:""}}</option>
 															{% else %}
-																<option value="{{s.id}}" name="asset_business">{{s.service_name}}</option>
+																<option value="{{s.id}}" name="asset_business">{{s.service_name|default:""}}</option>
 															{% endif %}										
 														{% endfor %}							   						   					
 													</select>
@@ -196,19 +224,19 @@
 											
 											</fieldset>
 											<fieldset>		
-											{% if asset_type == "server" %}
+											{% if asset_type == "server" or asset_type == "vmser" %}
 											<div id="asset_server_chioce" >					
 											<legend>服务器设备资产信息修改 - 可选信息</legend>
 					
 											<div class="form-group" >
-												 <label class="col-sm-2 control-label">主机地址</label>
+												 <label class="col-sm-2 control-label"><font color='red'>* </font>主机地址</label>
 												 <div class="col-sm-6">
-												 	<input type="text" class="form-control" name="server_ip" placeholder="Ip Address" value="{{ asset_body.ip }}" pattern="^(\d+\.\d+\.\d+\.\d+|[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(/.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+/.?))$" title="请输入IP地址或者域名"  class="input-xlarge"/>
+												 	<input type="text" class="form-control" name="server_ip" placeholder="Ip Address" value="{{ asset_body.ip|default:"" }}" pattern="^(\d+\.\d+\.\d+\.\d+|[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(/.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+/.?))$" title="请输入IP地址或者域名"  class="input-xlarge"/>
 												 </div>
 											</div>
 
 											<div class="form-group">
-												 <label class="col-sm-2 control-label">认证方式<i class="fa fa-info-circle" data-toggle="tooltip"  title="如果选择密钥方式认证，请先在部署服务器到节点服务器做好证书认证"></i></label>
+												 <label class="col-sm-2 control-label"><font color='red'>* </font>认证方式<i class="fa fa-info-circle" data-toggle="tooltip"  title="如果选择密钥方式认证，请先在部署服务器到节点服务器做好证书认证"></i></label>
 												 <div class="col-sm-6">
 												 	<select class="form-control" id='auth_type_select' onchange="javascript:oBtAuthType();" name="server_keyfile">
 												 		{% if asset_body.keyfile == 1 %}
@@ -221,99 +249,105 @@
 												 	</select>
 												 </div>
 											</div>
+												<div class="form-group">
+													 <label class="col-sm-2 control-label"><font color='red'>* </font>账户</label>
+													 <div class="col-sm-6">
+													 <input type="text" class="form-control" name="server_username" placeholder="Username"  class="input-xlarge" value="{{ asset_body.username|default:"" }}" />
+													 </div>
+												</div>											
 											{% if asset_body.keyfile == 1 %}
 												<div id="auth_accout_select" style="display:none;">
 											{% else %}
 												<div id="auth_accout_select">
 											{% endif %}
+	
+												<div class="form-group">
+													 <label class="col-sm-2 control-label"><font color='red'>* </font>密码</label>
+													 <div class="col-sm-6">
+													 <input type="password" class="form-control" name="server_passwd" placeholder="Password"  class="input-xlarge" value="{{ asset_body.passwd|default:"" }}" />
+													 </div>
+												</div>	
+												<div class="form-group">
+													 <label class="col-sm-2 control-label">sudo密码</label>
+													 <div class="col-sm-6">
+													 <input type="password" class="form-control" name="server_sudo_passwd" placeholder="Password"  class="input-xlarge" value="{{ asset_body.sudo_passwd|default:"" }}" />
+													 </div>
+												</div>																																			
 												<div class="form-group">
 													 <label class="col-sm-2 control-label">主机名字</label>
 													 <div class="col-sm-6">
-													 	<input type="text" class="form-control" name="server_hostname" placeholder="Hostname"  class="input-xlarge" value="{{ asset_body.hostname }}" />
+													 	<input type="text" class="form-control" name="server_hostname" placeholder="Hostname"  class="input-xlarge" value="{{ asset_body.hostname|default:"" }}" />
 													 </div>
-												</div>					
-												
-												<div class="form-group">
-													 <label class="col-sm-2 control-label">账户</label>
-													 <div class="col-sm-6">
-													 <input type="text" class="form-control" name="server_username" placeholder="Username"  class="input-xlarge" value="{{ asset_body.username }}" />
-													 </div>
-												</div>							
-												
-												<div class="form-group">
-													 <label class="col-sm-2 control-label">密码</label>
-													 <div class="col-sm-6">
-													 <input type="password" class="form-control" name="server_password" placeholder="Password"  class="input-xlarge" value="{{ asset_body.passwd }}" />
-													 </div>
-												</div>							
+												</div>																												
+							
 											</div>
 											<div class="form-group">
-												 <label class="col-sm-2 control-label">端口</label>
+												 <label class="col-sm-2 control-label"><font color='red'>* </font>端口</label>
 												 <div class="col-sm-6">
-												 <input type="text" class="form-control" name="server_port" placeholder="Port"  class="input-xlarge" pattern="^(\d+)" value="{{ asset_body.port }}" />
+												 <input type="text" class="form-control" name="server_port" placeholder="Port"  class="input-xlarge" pattern="^(\d+)" value="{{ asset_body.port|default:"" }}" />
 												 </div>
 											</div>	
 											
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">CPU型号</label>
 												 <div class="col-sm-6">
-												 <input type="text" class="form-control" name="server_cpu" placeholder="Cpu"  class="input-xlarge" value="{{ asset_body.cpu }}" />
+												 <input type="text" class="form-control" name="server_cpu" placeholder="Cpu"  class="input-xlarge" value="{{ asset_body.cpu|default:"" }}" />
 												 </div>
 											</div>	
 											
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">物理CPU</label>
 												 <div class="col-sm-6">
-												 <input type="text" class="form-control" name="server_cpu_number" placeholder="物理CPU个数"  class="input-xlarge" value="{{ asset_body.cpu_number }}" />
+												 <input type="text" class="form-control" name="server_cpu_number" placeholder="物理CPU个数"  class="input-xlarge" value="{{ asset_body.cpu_number|default:"" }}" />
 												 </div>
 											</div>		
 											
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">逻辑CPU</label>
 												 <div class="col-sm-6">
-												 <input type="text" class="form-control" name="server_vcpu_number" placeholder="逻辑CPU个数"  class="input-xlarge" value="{{ asset_body.vcpu_number }}" />
+												 <input type="text" class="form-control" name="server_vcpu_number" placeholder="逻辑CPU个数"  class="input-xlarge" value="{{ asset_body.vcpu_number|default:"" }}" />
 												 </div>
 											</div>	
 											
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">CPU核心数</label>
 												 <div class="col-sm-6">
-												 <input type="text" class="form-control" name="server_cpu_core" placeholder="单个CPU核心数"  class="input-xlarge" value="{{ asset_body.cpu_core }}" />
+												 <input type="text" class="form-control" name="server_cpu_core" placeholder="单个CPU核心数"  class="input-xlarge" value="{{ asset_body.cpu_core|default:"" }}" />
 												 </div>
 											</div>															
 											
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">内存容量</label>
 												 <div class="col-sm-6">
-												 <input type="text" class="form-control" name="server_ram_total" placeholder="Mem"  class="input-xlarge" value="{{ asset_body.ram_total  }}" />							 
+												 <input type="text" class="form-control" name="server_ram_total" placeholder="Mem"  class="input-xlarge" value="{{ asset_body.ram_total|default:""  }}" />							 
 												 </div>
 											</div>	
 											
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">内核版本</label>
 												 <div class="col-sm-6">
-												 <input type="text" class="form-control" name="server_kernel" placeholder="内核版本"  class="input-xlarge" value="{{ asset_body.kernel  }}" />
+												 <input type="text" class="form-control" name="server_kernel" placeholder="内核版本"  class="input-xlarge" value="{{ asset_body.kernel|default:""  }}" />
 												 </div>
 											</div>	
 											
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">Selinux状态</label>
 												 <div class="col-sm-6">
-												 <input type="text" class="form-control" name="server_selinux" placeholder="selinux状态"  class="input-xlarge" value="{{ asset_body.selinux  }}" />
+												 <input type="text" class="form-control" name="server_selinux" placeholder="selinux状态"  class="input-xlarge" value="{{ asset_body.selinux|default:""  }}" />
 												 </div>
 											</div>															
 											
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">Swap分区</label>
 												 <div class="col-sm-6">
-												 <input type="text" class="form-control" name="server_swap" placeholder="swap分区容量"  class="input-xlarge" value="{{ asset_body.swap  }}" />
+												 <input type="text" class="form-control" name="server_swap" placeholder="swap分区容量"  class="input-xlarge" value="{{ asset_body.swap|default:""  }}" />
 												 </div>
 											</div>						
 											
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">磁盘空间</label>
 												 <div class="col-sm-6">
-												 <input type="text" class="form-control" name="server_disk_total" placeholder="Disk"  class="input-xlarge" value="{{ asset_body.disk_total }}"/>
+												 <input type="text" class="form-control" name="server_disk_total" placeholder="Disk"  class="input-xlarge" value="{{ asset_body.disk_total|default:"" }}"/>
 												 </div>
 											</div>	
 											
@@ -324,7 +358,7 @@
 														<option selected="selected" value="">请选择一个类型</option>
 															{% for r in assets_data.raid %}
 																{% if r.id == asset_body.raid %}
-																	<option value="{{asset_body.raid}}" name="server_raid" selected="selected" >{{r.raid_name}}</option>
+																	<option value="{{r.id}}" name="server_raid" selected="selected" >{{r.raid_name}}</option>
 																{% else %}											
 																<option value="{{r.id}}" name="server_raid">{{r.raid_name}}</option>
 																{% endif %}
@@ -337,7 +371,7 @@
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">系统版本号</label>
 												 <div class="col-sm-6">
-												 <input type="text" class="form-control" name="server_system" placeholder="System"  class="input-xlarge" value="{{ asset_body.system }}" />
+												 <input type="text" class="form-control" name="server_system" placeholder="System"  class="input-xlarge" value="{{ asset_body.system|default:"" }}" />
 												 </div>
 											</div>	
 																												
@@ -348,14 +382,20 @@
 													 <select class="form-control" name="server_line"  >
 															{% for l in assets_data.line %}
 																{% if l.line_name == asset_body.line %}
-																	<option value="{{asset_body.line}}" name="server_line" selected="selected" >{{asset_body.line}}</option>
+																	<option value="{{l.id}}" name="server_line" selected="selected" >{{asset_body.line}}</option>
 																{% else %}											
-																	<option value="{{l.line_name}}" name="server_line">{{l.line_name}}</option>
+																	<option value="{{l.id}}" name="server_line">{{l.line_name}}</option>
 																{% endif %}
 															{% endfor %}		
 													</select>					 						 	  	
 												</div>
-											</div>	 					 											
+											</div>	 
+											<div class="form-group">
+												 <label class="col-sm-2 control-label">备注</label>
+												 <div class="col-sm-6">
+												 	<textarea type="text" class="form-control" id="asset_mark" name="asset_mark" placeholder="备注" value="" class="input-xlarge">{{ asset_main.mark|default:"" }}</textarea>
+												 </div>
+											</div>																 											
 											</div>
 											</fieldset>
 											
@@ -367,35 +407,63 @@
 											<div class="form-group" >
 												 <label class="col-sm-2 control-label">背板带宽</label>
 												 <div class="col-sm-6">
-												 	<input type="text" class="form-control" name="net_bandwidth" placeholder="xGbps"  title="请输入IP地址或者域名"  class="input-xlarge" value="{{ asset_body.bandwidth }}" />
+												 	<input type="text" class="form-control" name="net_bandwidth" placeholder="xGbps"  title="请输入IP地址或者域名"  class="input-xlarge" value="{{ asset_body.bandwidth|default:"" }}" />
 												 </div>
 											</div>
 											
 											<div class="form-group" >
-												 <label class="col-sm-2 control-label">主机地址</label>
+												 <label class="col-sm-2 control-label"><font color='red'>* </font>主机地址</label>
 												 <div class="col-sm-6">
-												 	<input type="text" class="form-control" name="net_ip" placeholder="Ip Address" value="{{ asset_body.ip }}" pattern="^(\d+\.\d+\.\d+\.\d+|[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(/.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+/.?))$" title="请输入IP地址或者域名"  class="input-xlarge"/>
+												 	<input type="text" class="form-control" name="net_ip" placeholder="Ip Address" value="{{ asset_body.ip|default:"" }}" pattern="^(\d+\.\d+\.\d+\.\d+|[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(/.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+/.?))$" title="请输入IP地址或者域名"  class="input-xlarge"/>
 												 </div>
 											</div>				
 											
 											<div class="form-group">
+													<label class="col-sm-2 control-label">SSH账户</label>
+													 <div class="col-sm-6">
+													 <input type="text" class="form-control" name="net_username" placeholder="Username"  class="input-xlarge" value="{{ asset_body.username|default:"" }}" />
+													</div>
+											</div>											
+											
+											<div class="form-group">
+												 <label class="col-sm-2 control-label">SSH端口</label>
+												 <div class="col-sm-6">
+												 <input type="text" class="form-control" name="net_port" placeholder="ssh port" pattern="^(\d+)" class="input-xlarge" value="{{ asset_body.port|default:"" }}" />
+												 </div>
+											</div>											
+											
+											<div class="form-group">
+												 <label class="col-sm-2 control-label">SSH密码</label>
+												 <div class="col-sm-6">
+												 <input type="password" class="form-control" name="net_passwd" placeholder="Password"  class="input-xlarge" value="{{ asset_body.passwd|default:"" }}" />
+												 </div>
+											</div>		
+
+											<div class="form-group">
+												 <label class="col-sm-2 control-label">EN密码</label>
+												 <div class="col-sm-6">
+												 <input type="password" class="form-control" name="net_sudo_passwd" placeholder="Password"  class="input-xlarge" value="{{ asset_body.sudo_passwd|default:"" }}" />
+												 </div>
+											</div>												
+											
+											<div class="form-group">
 												 <label class="col-sm-2 control-label">端口数</label>
 												 <div class="col-sm-6">
-												 <input type="text" class="form-control" name="net_port_number" placeholder="port number" pattern="^(\d+)" class="input-xlarge" value="{{ asset_body.port_number}}" />
+												 <input type="text" class="form-control" name="net_port_number" placeholder="port number" pattern="^(\d+)" class="input-xlarge" value="{{ asset_body.port_number|default:""}}" />
 												 </div>
 											</div>							
 											
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">固件版本</label>
 												 <div class="col-sm-6">
-												 <input type="text" class="form-control" name="net_firmware" placeholder="firmware"  class="input-xlarge" value="{{ asset_body.firmware }}" />
+												 <input type="text" class="form-control" name="net_firmware" placeholder="firmware"  class="input-xlarge" value="{{ asset_body.firmware|default:"" }}" />
 												 </div>
 											</div>							
 											
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">CPU型号</label>
 												 <div class="col-sm-6">
-												 <input type="text" class="form-control" name="net_cpu" placeholder="cpu"  class="input-xlarge" value="{{ asset_body.cpu }}" />
+												 <input type="text" class="form-control" name="net_cpu" placeholder="cpu"  class="input-xlarge" value="{{ asset_body.cpu|default:"" }}" />
 												 </div>
 											</div>	
 											
@@ -403,16 +471,22 @@
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">内存容量</label>
 												 <div class="col-sm-6">
-												 <input type="text" class="form-control" name="net_stone" placeholder="Mem"  class="input-xlarge" value="{{ asset_body.stone }}" />
+												 <input type="text" class="form-control" name="net_stone" placeholder="Mem"  class="input-xlarge" value="{{ asset_body.stone|default:"" }}" />
 												 </div>
 											</div>	
 											
 											<div class="form-group">
 												 <label class="col-sm-2 control-label">配置说明</label>
 												 <div class="col-sm-6">						
-												 	<textarea  class="form-control" rows="5" name="net_configure_detail" placeholder="配置说明"  id="configure_detail" value=""></textarea>
+												 	<textarea  class="form-control" rows="5" name="net_configure_detail" placeholder="配置说明"  id="configure_detail" value="{{ asset_body.configure_detail|default:"" }}"></textarea>
 												 </div>
-											</div>	
+											</div>
+											<div class="form-group">
+												 <label class="col-sm-2 control-label">备注</label>
+												 <div class="col-sm-6">
+												 	<textarea  class="form-control" id="asset_mark" name="asset_mark" placeholder="备注" value="" class="input-xlarge">{{ asset_main.mark|default:"" }}</textarea>
+												 </div>
+											</div>													
 											</div>
 										{% endif %}
 											</fieldset>
@@ -438,6 +512,31 @@
 <script type="text/javascript">
 $(function () { $("[data-toggle='tooltip']").tooltip(); });
 
+
+function oBtProjectSelect(){
+	   $('#asset_business option:selected').empty();
+	   var dbId = $('#asset_project option:selected').val();
+	   if ( dbId.length > 0){	 
+			$.ajax({
+				dataType: "JSON",
+				url:'/api/project/'+ dbId + '/', //请求地址
+				type:"GET",  //提交类似
+				success:function(response){
+					var binlogHtml = '<select class="form-control" name="asset_business" id="asset_business" >'
+					var selectHtml = '';
+					for (var i=0; i <response["service_assets"].length; i++){
+						 selectHtml += '<option name="asset_business" value="'+ response["service_assets"][i]["id"] +'">' + response["service_assets"][i]["service_name"] + '</option>' 
+					};                        
+					binlogHtml =  binlogHtml + selectHtml + '</select>';
+					document.getElementById("asset_business").innerHTML= binlogHtml;	
+						
+				},
+			});	
+	   };
+}
+
+
+
 function addAssetsData(obj) {
 	var form = document.getElementById('addHost');
 	for (var i = 0; i < form.length; ++i) {
@@ -453,7 +552,7 @@ function addAssetsData(obj) {
 	var asset_data = getFormData(document.getElementById('addHost'),'');
 // 	alert(JSON.stringify(asset_data));  
 	var btnObj = $(obj);
-	if ("{{ asset_type }}"=="server"){
+	if ("{{ asset_type }}"=="server" || "{{ asset_type }}"=="vmser"){
 		var putUrl = '/api/server/{{ asset_body.id }}/';
 	}
 	else {
@@ -471,7 +570,15 @@ function addAssetsData(obj) {
 			window.wxc.xcConfirm("资产修改成功", window.wxc.xcConfirm.typeEnum.success);
 		},
     	error:function(response){
-    		window.wxc.xcConfirm("数据格式不对，修改资产失败~", window.wxc.xcConfirm.typeEnum.error);
+/*     		window.wxc.xcConfirm("资产添加失败："+response.toJSONString(), window.wxc.xcConfirm.typeEnum.error); */
+			$.notify({
+				title: "<strong>资产修改错误:</strong><br>",
+				message: response.responseText
+			},
+			{
+				type: 'danger',
+				delay: 3600000
+			});	
     	}
 	})	
 }
@@ -490,6 +597,10 @@ function oBtAuthType() {
 }	
 
 
+$(document).ready(function() {
+    var mark = $('#asset_mark').val().replace(/<br\/>/g, "\n");
+    $('#asset_mark').text(mark)
+}); 
 
 
 function getFormData (form, filler) {
@@ -501,6 +612,11 @@ function getFormData (form, filler) {
 		var value = form[i].value;
 		if (name.length == 0)
 			continue;
+		try {
+			value  = value.replace(/\n/g,'<br/>');
+		}catch (e) {
+			alert(e);
+		}
 		if (value.length == 0) {
 			if ((typeof filler != 'string') || (filler.length == 0))
 				continue;
@@ -511,7 +627,8 @@ function getFormData (form, filler) {
 		var serverStart = name.indexOf("server_");
 		var netStart = name.indexOf("net_");
 		if (assetStart==0){
-			var asz = "assets."+name.replace("asset_","")+" = '" + value + "'";
+			var asz = "assets." + name.replace("asset_","")+" = '" + value + "'"
+			
 			try {
 				eval(asz);
 			} catch (e) {
@@ -536,7 +653,7 @@ function getFormData (form, filler) {
 		}
 		
 	}
-	if ("{{ asset_type }}" == "server"){
+	if ("{{ asset_type }}" == "server" || "{{ asset_type }}" == "vmser"){
 		server.assets = assets;
 		return server;		
 	}
